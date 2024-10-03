@@ -36,8 +36,8 @@ extra_javascript:
 # Page Tree
 nav:
   
-  - Get ready for the course: 
-    - Basic Linux:  basic_linux.md
+  - Introduction: 
+    - About me: introduction.md
 
   - Single cell sequencing:
     - Read QC and alignment: bulkRNAseq_lab.md
