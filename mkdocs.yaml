@@ -1,0 +1,44 @@
+# Project Information
+site_name: Lab note for UMD BIOI611
+site_author: Shaojun Xie 
+site_description: >-
+  Lab note for BIOI611
+
+# Repository
+repo_name: Bix4UMD/BIOI611_lab
+repo_url: https://github.com/Bix4UMD/BIOI611_lab.git 
+#edit_uri: https://github.com/Bix4UMD/BIOI611_lab/edit/main/docs/
+
+# Copyright
+copyright: Copyright &copy; 2024 Shaojun Xie
+
+theme:
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - rust
+
+# Customization
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Bix4UMD
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+# Page Tree
+nav:
+  
+  - Get ready for the course: 
+    - Basic Linux:  basic_linux.md
+
+  - Single cell sequencing:
+    - Read QC and alignment: bulkRNAseq_lab.md
+    - Analyze scATAC-seq data using `Signac`: scatac_signac_pbmc.md
