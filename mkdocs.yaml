@@ -1,11 +1,11 @@
 # Project Information
-site_name: Lab note for UMD BIOI611
+site_name: Notes on Bioinformatics tool testing
 site_author: Shaojun Xie 
 site_description: >-
   Notes on Bioinformatics tool testing
 
 # Repository
-repo_name: Bix4UMD/BIOI611_lab
+repo_name: ReprosHub/bix_tool_notes
 repo_url: https://github.com/ReprosHub/bix_tool_notes.git 
 #edit_uri: https://github.com/Bix4UMD/BIOI611_lab/edit/main/docs/
 
