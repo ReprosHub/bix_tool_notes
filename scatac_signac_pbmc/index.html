@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Shaojun Xie" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Analyze scATAC-seq data using `Signac` - Notes on Bioinformatics tool testing</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Analyze scATAC-seq data using `Signac`";
+        var mkdocs_page_input_path = "scatac_signac_pbmc.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/rust.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Notes on Bioinformatics tool testing
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../introduction.md">About me</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Single cell sequencing</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Analyze scATAC-seq data using `Signac`</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#data-downloading">Data downloading</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#load-r-packages">Load R packages</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#data-preprocessing">Data preprocessing</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#session-infomation">Session Infomation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#reference">Reference</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Notes on Bioinformatics tool testing</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Single cell sequencing</li>
+      <li class="breadcrumb-item active">Analyze scATAC-seq data using `Signac`</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/ReprosHub/bix_tool_notes.git/edit/master/docs/scatac_signac_pbmc.md">Edit on ReprosHub/bix_tool_notes</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="analysis-of-scatac-seq-data-in-pbmc-using-signac">Analysis of scATAC-seq data in PBMC using Signac</h1>
+<p>In this note, the data is from 10x. Cellranger report can be found in the link <a href="https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_Chromium_Controller/10k_pbmc_ATACv2_nextgem_Chromium_Controller_web_summary.html">here</a>. </p>
+<pre><code>micromamba activate condaenv4bix_tool_notes_scatac
+export R_LIBS=/home/xies4/micromamba/envs/condaenv4bix_tool_notes_scatac/lib/R/library/
+</code></pre>
+<h2 id="data-downloading">Data downloading</h2>
+<p>To download all the required files, you can run the following lines in a shell:</p>
+<pre><code class="language-R">getwd()
+</code></pre>
+<p>'/mnt/ccrsf-static/Analysis/xies4/github_repos/ngs_software_testing_notes/docs'</p>
+<pre><code class="language-R">cat(system(&quot;cat ./scatac_signac_pbmc/s1_dl.sh&quot;, intern = T), sep = &quot;\n&quot;)
+</code></pre>
+<pre><code>#!/bin/bash
+wget https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_Chromium_Controller/10k_pbmc_ATACv2_nextgem_Chromium_Controller_filtered_peak_bc_matrix.h5
+wget https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_Chromium_Controller/10k_pbmc_ATACv2_nextgem_Chromium_Controller_singlecell.csv
+wget https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_Chromium_Controller/10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz
+wget https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_Chromium_Controller/10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz.tbi
+</code></pre>
+<pre><code class="language-R">cat(system(&quot;head 10k_pbmc_ATACv2_nextgem_Chromium_Controller_singlecell.csv&quot;, intern = T), sep=&quot;\n&quot;)
+</code></pre>
+<pre><code>barcode,total,duplicate,chimeric,unmapped,lowmapq,mitochondrial,nonprimary,passed_filters,is__cell_barcode,excluded_reason,TSS_fragments,DNase_sensitive_region_fragments,enhancer_region_fragments,promoter_region_fragments,on_target_fragments,blacklist_region_fragments,peak_region_fragments,peak_region_cutsites
+NO_BARCODE,20081988,3972351,3423,2118408,1159348,23059,4131,12801268,0,0,0,0,0,0,0,0,0,0
+AAACGAAAGAAACGCC-1,4,0,0,0,0,0,0,4,0,0,1,0,0,0,1,0,2,4
+AAACGAAAGAAAGCAG-1,3,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,1,2
+AAACGAAAGAAAGGGT-1,2,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,1,2
+AAACGAAAGAAATACC-1,17,0,0,0,0,0,0,17,0,0,11,0,0,0,11,0,14,27
+AAACGAAAGAAATCTG-1,1,0,0,0,0,0,0,1,0,2,0,0,0,0,0,0,0,0
+AAACGAAAGAAATGGG-1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+AAACGAAAGAAATTCG-1,4,0,0,0,1,0,0,3,0,0,1,0,0,0,1,0,2,4
+AAACGAAAGAACAGGA-1,2,0,0,0,0,0,0,2,0,0,2,0,0,0,2,0,2,4
+</code></pre>
+<h2 id="load-r-packages">Load R packages</h2>
+<pre><code class="language-R">library(Signac)
+library(Seurat)
+library(ggplot2)
+library(patchwork)
+library(GenomicRanges)
+</code></pre>
+<pre><code>Loading required package: SeuratObject
+
+Loading required package: sp
+
+
+Attaching package: ‘SeuratObject’
+
+
+The following objects are masked from ‘package:base’:
+
+    intersect, t
+
+
+Loading required package: stats4
+
+Loading required package: BiocGenerics
+
+
+Attaching package: ‘BiocGenerics’
+
+
+The following object is masked from ‘package:SeuratObject’:
+
+    intersect
+
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+
+Loading required package: S4Vectors
+
+
+Attaching package: ‘S4Vectors’
+
+
+The following object is masked from ‘package:utils’:
+
+    findMatches
+
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+
+Loading required package: IRanges
+
+
+Attaching package: ‘IRanges’
+
+
+The following object is masked from ‘package:sp’:
+
+    %over%
+
+
+Loading required package: GenomeInfoDb
+</code></pre>
+<h2 id="data-preprocessing">Data preprocessing</h2>
+<p>Signac uses information from two related input files, both of which can be created using CellRanger:</p>
+<ol>
+<li>
+<p>Peak/Cell matrix. This is analogous to the gene expression count matrix used to analyze single-cell RNA-seq. However, instead of genes, each row of the matrix represents a region of the genome (a peak), that is predicted to represent a region of open chromatin. Each value in the matrix represents the number of Tn5 integration sites for each single barcode (i.e. a cell) that map within each peak. You can find more detail on the 10X Website.</p>
+</li>
+<li>
+<p>Fragment file. This represents a full list of all unique fragments across all single cells. It is a substantially larger file, is slower to work with, and is stored on-disk (instead of in memory). However, the advantage of retaining this file is that it contains all fragments associated with each single cell, as opposed to only fragments that map to peaks. More information about the fragment file can be found on the 10x Genomics website or on the sinto website.</p>
+</li>
+</ol>
+<pre><code class="language-R">counts &lt;- Read10X_h5(filename = &quot;10k_pbmc_ATACv2_nextgem_Chromium_Controller_filtered_peak_bc_matrix.h5&quot;)
+</code></pre>
+<pre><code class="language-R">metadata &lt;- read.csv(
+  file = &quot;10k_pbmc_ATACv2_nextgem_Chromium_Controller_singlecell.csv&quot;,
+  header = TRUE,
+  row.names = 1
+)
+</code></pre>
+<pre><code class="language-R">chrom_assay &lt;- CreateChromatinAssay(
+  counts = counts,
+  sep = c(&quot;:&quot;, &quot;-&quot;),
+  fragments = &quot;10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz&quot;,
+  min.cells = 10,
+  min.features = 200
+)
+</code></pre>
+<pre><code class="language-R">pbmc &lt;- CreateSeuratObject(
+  counts = chrom_assay,
+  assay = &quot;peaks&quot;,
+  meta.data = metadata
+)
+</code></pre>
+<pre><code class="language-R">pbmc
+</code></pre>
+<pre><code>An object of class Seurat 
+165434 features across 10246 samples within 1 assay 
+Active assay: peaks (165434 features, 0 variable features)
+ 2 layers present: counts, data
+</code></pre>
+<p>Similar to scRNA-seq, you can also read the count matrix stored in three files under the folder: <code>filtered_peak_bc_matrix</code>: </p>
+<pre><code>counts &lt;- Matrix::readMM(&quot;filtered_peak_bc_matrix/matrix.mtx&quot;)
+barcodes &lt;- readLines(&quot;filtered_peak_bc_matrix/barcodes.tsv&quot;)
+peaks &lt;- read.table(&quot;filtered_peak_bc_matrix/peaks.bed&quot;, sep=&quot;\t&quot;)
+peaknames &lt;- paste(peaks$V1, peaks$V2, peaks$V3, sep=&quot;-&quot;)
+colnames(counts) &lt;- barcodes
+rownames(counts) &lt;- peaknames
+</code></pre>
+<pre><code class="language-R">pbmc[['peaks']]
+</code></pre>
+<pre><code>ChromatinAssay data with 165434 features for 10246 cells
+Variable features: 0 
+Genome: 
+Annotation present: FALSE 
+Motifs present: FALSE 
+Fragment files: 1
+</code></pre>
+<pre><code class="language-R">granges(pbmc)
+
+</code></pre>
+<pre><code>GRanges object with 165434 ranges and 0 metadata columns:
+             seqnames        ranges strand
+                &lt;Rle&gt;     &lt;IRanges&gt;  &lt;Rle&gt;
+       [1]       chr1    9772-10660      *
+       [2]       chr1 180712-181178      *
+       [3]       chr1 181200-181607      *
+       [4]       chr1 191183-192084      *
+       [5]       chr1 267576-268461      *
+       ...        ...           ...    ...
+  [165430] KI270713.1   13054-13909      *
+  [165431] KI270713.1   15212-15933      *
+  [165432] KI270713.1   21459-22358      *
+  [165433] KI270713.1   29676-30535      *
+  [165434] KI270713.1   36913-37813      *
+  -------
+  seqinfo: 35 sequences from an unspecified genome; no seqlengths
+</code></pre>
+<p>We then remove the features that correspond to chromosome scaffolds e.g. (KI270713.1) or other sequences instead of the (22+2) standard chromosomes.</p>
+<p>The function <code>standardChromosomes</code> in R package <code>GenomeInfoDb</code> lists the 'standard' chromosomes defined as sequences in the assembly that are not scaffolds; also referred to as an 'assembly molecule' in NCBI.</p>
+<pre><code class="language-R">standardChromosomes(granges(pbmc))
+</code></pre>
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>'chr1'</li><li>'chr2'</li><li>'chr3'</li><li>'chr4'</li><li>'chr5'</li><li>'chr6'</li><li>'chr7'</li><li>'chr8'</li><li>'chr9'</li><li>'chr10'</li><li>'chr11'</li><li>'chr12'</li><li>'chr13'</li><li>'chr14'</li><li>'chr15'</li><li>'chr16'</li><li>'chr17'</li><li>'chr18'</li><li>'chr19'</li><li>'chr20'</li><li>'chr21'</li><li>'chr22'</li><li>'chrX'</li><li>'chrY'</li></ol>
+
+<pre><code class="language-R">peaks.keep &lt;- seqnames(granges(pbmc)) %in% standardChromosomes(granges(pbmc))
+pbmc &lt;- pbmc[as.vector(peaks.keep), ]
+</code></pre>
+<pre><code class="language-R">library(AnnotationHub)
+ah &lt;- AnnotationHub()
+
+# Search for the Ensembl 98 EnsDb for Homo sapiens on AnnotationHub
+query(ah, &quot;EnsDb.Hsapiens.v98&quot;)
+</code></pre>
+<pre><code>Loading required package: BiocFileCache
+
+Loading required package: dbplyr
+
+
+
+
+AnnotationHub with 1 record
+# snapshotDate(): 2023-10-23
+# names(): AH75011
+# $dataprovider: Ensembl
+# $species: Homo sapiens
+# $rdataclass: EnsDb
+# $rdatadateadded: 2019-05-02
+# $title: Ensembl 98 EnsDb for Homo sapiens
+# $description: Gene and protein annotations for Homo sapiens based on Ensem...
+# $taxonomyid: 9606
+# $genome: GRCh38
+# $sourcetype: ensembl
+# $sourceurl: http://www.ensembl.org
+# $sourcesize: NA
+# $tags: c("98", "AHEnsDbs", "Annotation", "EnsDb", "Ensembl", "Gene",
+#   "Protein", "Transcript") 
+# retrieve record with 'object[["AH75011"]]'
+</code></pre>
+<pre><code class="language-R">ensdb_v98 &lt;- ah[[&quot;AH75011&quot;]]
+</code></pre>
+<pre><code>loading from cache
+
+require(“ensembldb”)
+</code></pre>
+<pre><code class="language-R"># extract gene annotations from EnsDb
+annotations &lt;- GetGRangesFromEnsDb(ensdb = ensdb_v98)
+
+# change to UCSC style since the data was mapped to hg38
+seqlevels(annotations) &lt;- paste0('chr', seqlevels(annotations))
+genome(annotations) &lt;- &quot;hg38&quot;
+
+</code></pre>
+<pre><code class="language-R"># add the gene information to the object
+Annotation(pbmc) &lt;- annotations
+</code></pre>
+<pre><code class="language-R">colname_before_NS &lt;- colnames(pbmc@meta.data)
+</code></pre>
+<pre><code class="language-R">pbmc &lt;- NucleosomeSignal(object = pbmc)
+</code></pre>
+<pre><code class="language-R">colname_after_NS &lt;- colnames(pbmc@meta.data)
+</code></pre>
+<pre><code class="language-R">setdiff(colname_after_NS, colname_before_NS)
+</code></pre>
+<pre><code class="language-R">pbmc &lt;- TSSEnrichment(object = pbmc)
+
+</code></pre>
+<pre><code class="language-R">colname_after_TSSEnrich &lt;- colnames(pbmc@meta.data)
+</code></pre>
+<pre><code class="language-R">setdiff(colname_after_TSSEnrich, colname_after_NS)
+</code></pre>
+<pre><code class="language-R"># add fraction of reads in peaks
+pbmc$pct_reads_in_peaks &lt;- pbmc$peak_region_fragments / pbmc$passed_filters * 100
+
+</code></pre>
+<pre><code class="language-R"># add blacklist ratio
+pbmc$blacklist_ratio &lt;- FractionCountsInRegion(
+  object = pbmc, 
+  assay = 'peaks',
+  regions = blacklist_hg38_unified
+)
+</code></pre>
+<pre><code class="language-R">DensityScatter(pbmc, x = 'nCount_peaks', y = 'TSS.enrichment', log_x = TRUE, quantiles = TRUE)
+
+</code></pre>
+<pre><code class="language-R">pbmc$nucleosome_group &lt;- ifelse(pbmc$nucleosome_signal &gt; 4, 'NS &gt; 4', 'NS &lt; 4')
+FragmentHistogram(object = pbmc, group.by = 'nucleosome_group')
+</code></pre>
+<pre><code class="language-R">pbmc$nucleosome_group &lt;- ifelse(pbmc$nucleosome_signal &gt; 4, 'NS &gt; 4', 'NS &lt; 4')
+FragmentHistogram(object = pbmc, group.by = 'nucleosome_group')
+</code></pre>
+<pre><code class="language-R">VlnPlot(
+  object = pbmc,
+  features = c('nCount_peaks', 'TSS.enrichment', 'blacklist_ratio', 'nucleosome_signal', 'pct_reads_in_peaks'),
+  pt.size = 0.1,
+  ncol = 5
+)
+</code></pre>
+<pre><code class="language-R">pbmc &lt;- subset(
+  x = pbmc,
+  subset = nCount_peaks &gt; 9000 &amp;
+    nCount_peaks &lt; 100000 &amp;
+    pct_reads_in_peaks &gt; 40 &amp;
+    blacklist_ratio &lt; 0.01 &amp;
+    nucleosome_signal &lt; 4 &amp;
+    TSS.enrichment &gt; 4
+)
+</code></pre>
+<pre><code class="language-R">pbmc &lt;- RunTFIDF(pbmc)
+pbmc &lt;- FindTopFeatures(pbmc, min.cutoff = 'q0')
+
+</code></pre>
+<pre><code class="language-R">pbmc &lt;- RunSVD(pbmc)
+</code></pre>
+<h2 id="session-infomation">Session Infomation</h2>
+<pre><code class="language-R">sessionInfo()
+</code></pre>
+<h2 id="reference">Reference</h2>
+<pre><code class="language-R">https://stuartlab.org/signac/articles/pbmc_vignette
+</code></pre>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024 Shaojun Xie</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/ReprosHub/bix_tool_notes.git" class="fa fa-code-fork" style="color: #fcfcfc"> ReprosHub/bix_tool_notes</a>
+        </span>
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../javascripts/mathjax.js"></script>
+      <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
