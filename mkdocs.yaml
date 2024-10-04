@@ -40,5 +40,4 @@ nav:
     - About me: introduction.md
 
   - Single cell sequencing:
-    - Read QC and alignment: bulkRNAseq_lab.md
     - Analyze scATAC-seq data using `Signac`: scatac_signac_pbmc.md
