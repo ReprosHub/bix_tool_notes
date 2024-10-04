@@ -1,2 +1,25 @@
+# Ignore everything
+*
 
+# But not these files...
+!*.pl
+!*.py
+!*.R
+!*README
+!*.sub
+!*.sh
+!*.Rmd
+!*.md
+!envrionment.yaml
+!Snakemake
+!*.yaml
+!*.ipynb
+!.gitignore
+!*.png
 
+# ...even if they are in subdirectories
+!*/
+
+# but not the files in the folder below
+software/
+!**/.ipynb_checkpoints/
